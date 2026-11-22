@@ -8,7 +8,7 @@ video, karaoke, MIDI y DVS. Código propio y abierto (licencia [MIT](LICENSE)).
 
 ## Descargar y probar
 
-1. Bajá el instalador `BROSS.DJ.Setup.0.1.0.exe` desde
+1. Bajá el instalador `BROSS.DJ.Setup.0.1.1.exe` desde
    [Releases](https://github.com/bross14/bross-dj/releases/latest).
 2. Si Windows muestra "Windows protegió su PC", tocá *Más información →
    Ejecutar de todas formas*. Aparece porque el instalador todavía no tiene
@@ -89,7 +89,7 @@ npm run dist       # instalador de Windows (NSIS) -> release/
 ```
 
 Las versiones publicadas se compilan con `.github/workflows/release.yml` al
-subir un tag `vX.Y.Z` (`git tag v0.1.1; git push origin v0.1.1`).
+subir un tag `vX.Y.Z` (`git tag v0.1.2; git push origin v0.1.2`).
 
 ### Estructura
 

@@ -1,7 +1,7 @@
 {
   "name": "bross-dj",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "BROSS DJ — software de DJ de escritorio para Windows (Electron + Web Audio)",
   "type": "module",
   "main": "electron/main.cjs",
