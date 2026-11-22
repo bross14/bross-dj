@@ -10,7 +10,8 @@ const root = path.resolve(__dirname, "..");
 const { respond, pathFromUrl } = require(path.join(root, "electron/media.cjs"));
 const { ffmpegArgs } = require(path.join(root, "electron/rtmp.cjs"));
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "bross-media-"));
+// ruta real (en CI la carpeta temporal viene con nombre corto 8.3, p. ej. RUNNER~1)
+const tmp = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "bross-media-")));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
 describe("bross-media://", () => {
