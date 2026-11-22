@@ -836,6 +836,20 @@ function BrowserImpl(props: BrowserProps) {
               {tab === "spotify" ? <span className="tri" /> : null}
               SPOTIFY
             </button>
+          </div>
+
+          {/* buscador + botones de la pestaña (carpetas, listas, sidelist): fuera de
+              la fila de pestañas para que no queden cortados cuando no entran */}
+          <div className="tsearch-row">
+            <div className="tsearch">
+              <input
+                placeholder="Buscar en la biblioteca…"
+                aria-label="Buscar en la biblioteca"
+                value={query}
+                onChange={(e) => onQuery(e.target.value)}
+              />
+              <span aria-hidden>⌕</span>
+            </div>
             <div className="ttabs-actions">
               {tab === "browser" ? (
                 <>
@@ -910,16 +924,6 @@ function BrowserImpl(props: BrowserProps) {
                 </button>
               )}
             </div>
-          </div>
-
-          <div className="tsearch">
-            <input
-              placeholder="Buscar en la biblioteca…"
-              aria-label="Buscar en la biblioteca"
-              value={query}
-              onChange={(e) => onQuery(e.target.value)}
-            />
-            <span aria-hidden>⌕</span>
           </div>
 
           <div className="ttree" role="tree" aria-label="Carpetas y listas">

@@ -1757,17 +1757,17 @@ button {
   border-bottom: 4px solid transparent;
 }
 
-/* Botones de carpeta: + agregar, − quitar, ★ favorito */
+/* Botones de la pestaña (+ agregar, − quitar, ★ favorito…), al lado del buscador */
 .ttabs-actions {
-  margin-left: auto;
+  flex: none;
   display: flex;
   align-items: center;
   gap: 3px;
 }
 
 .tbtn {
-  width: 21px;
-  height: 21px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -1904,8 +1904,17 @@ button {
   color: #cfe6fb;
 }
 
-.tsearch {
+.tsearch-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 10px 12px 8px;
+  flex: none;
+}
+
+.tsearch {
+  flex: 1;
+  min-width: 0;
   height: 32px;
   display: flex;
   gap: 8px;
@@ -1915,7 +1924,6 @@ button {
   padding: 0 10px;
   background: #121212;
   color: #8f8f8f;
-  flex: none;
 }
 
 .tsearch input {
