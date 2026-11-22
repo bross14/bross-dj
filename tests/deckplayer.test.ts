@@ -1,6 +1,7 @@
 // El reproductor del hilo de audio, corriendo fuera del navegador:
 // se simulan los globales del AudioWorklet y se mide lo que sale.
 import { beforeAll, describe, expect, it } from "vitest";
+import { floatToInt16 } from "../src/engine/pcm";
 import { SR, rms, sine, zeroCrossFreq } from "./helpers";
 
 type Proc = {
@@ -27,7 +28,9 @@ function deck(buffer: Float32Array) {
   const reports: { pos: number; rate: number; ended: boolean }[] = [];
   p.port.postMessage = (m: unknown) => reports.push(m as never);
   const send = (data: unknown) => p.port.onmessage?.({ data });
-  send({ type: "buffer", channels: [buffer, buffer] });
+  // el reproductor guarda el PCM en 16 bits
+  const pcm = floatToInt16(buffer);
+  send({ type: "buffer", channels: [pcm, pcm] });
   const render = (seconds: number) => {
     const blocks = Math.round((seconds * SR) / 128);
     const out = new Float32Array(blocks * 128);

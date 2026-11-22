@@ -487,9 +487,18 @@ export default function App() {
     [engine],
   );
 
+  // tema que se está leyendo/decodificando en cada deck (las mezclas largas tardan)
+  const [loadingDeck, setLoadingDeck] = useState<{ A: string | null; B: string | null }>({ A: null, B: null });
+
   const handleLoad = useCallback(
     async (track: LibraryTrack, deck: DeckId) => {
-      const ready = await hydrateTrack(track);
+      setLoadingDeck((prev) => ({ ...prev, [deck]: track.title || track.fileName }));
+      let ready: LibraryTrack | null;
+      try {
+        ready = await hydrateTrack(track);
+      } finally {
+        setLoadingDeck((prev) => ({ ...prev, [deck]: null }));
+      }
       if (!ready) {
         window.alert(`No se pudo abrir "${track.fileName}". Revisá que el archivo siga en su carpeta.`);
         return;
@@ -1556,6 +1565,7 @@ export default function App() {
             <Deck
               id="A"
               runtime={rt.A}
+              loading={loadingDeck.A}
               pitch={synced.A ? rt.A.pitch : pitch.A}
               range={range.A}
               onRange={(dir) => handleRange("A", dir)}
@@ -1668,6 +1678,7 @@ export default function App() {
             <Deck
               id="B"
               runtime={rt.B}
+              loading={loadingDeck.B}
               pitch={synced.B ? rt.B.pitch : pitch.B}
               range={range.B}
               onRange={(dir) => handleRange("B", dir)}

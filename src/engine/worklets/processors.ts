@@ -14,8 +14,11 @@ declare class AudioWorkletProcessor {
 }
 declare function registerProcessor(name: string, ctor: unknown): void;
 
+/** PCM de 16 bits → float de -1 a 1 */
+const INT16_SCALE = 1 / 32768;
+
 export type DeckMsg =
-  | { type: "buffer"; channels: Float32Array[] }
+  | { type: "buffer"; channels: Int16Array[] }
   | { type: "clear" }
   | { type: "start"; pos: number; rate: number; seq: number }
   | { type: "rate"; rate: number; tau: number; seq: number }
@@ -36,7 +39,9 @@ export interface DeckReport {
 }
 
 /**
- * Reproductor del deck. Una sola copia del PCM, todo en el hilo de audio:
+ * Reproductor del deck. Una sola copia del PCM (en 16 bits: la mitad de
+ * memoria que en float, para que entren mezclas de varias horas), todo en el
+ * hilo de audio:
  *
  * - Varispeed (key-lock apagado, scratch, reverse, break): lee la pista a
  *   cualquier velocidad, incluso hacia atrás, con interpolación cúbica.
@@ -47,7 +52,7 @@ export interface DeckReport {
  *   granular.
  */
 class DeckProcessor extends AudioWorkletProcessor {
-  private ch: Float32Array[] = [];
+  private ch: Int16Array[] = [];
   private len = 0;
   /** posición de lectura en frames */
   private pos = 0;
@@ -170,16 +175,16 @@ class DeckProcessor extends AudioWorkletProcessor {
     this.outLen = 0;
   }
 
-  private readAt(c: Float32Array, p: number): number {
+  private readAt(c: Int16Array, p: number): number {
     const i = Math.floor(p);
-    if (i < 1 || i >= this.len - 2) return i >= 0 && i < this.len ? c[i] : 0;
+    if (i < 1 || i >= this.len - 2) return i >= 0 && i < this.len ? c[i] * INT16_SCALE : 0;
     const f = p - i;
     const y0 = c[i - 1];
     const y1 = c[i];
     const y2 = c[i + 1];
     const y3 = c[i + 2];
     // Catmull-Rom: más limpio que la interpolación lineal al cambiar la velocidad
-    return y1 + 0.5 * f * (y2 - y0 + f * (2 * y0 - 5 * y1 + 4 * y2 - y3 + f * (3 * (y1 - y2) + y3 - y0)));
+    return (y1 + 0.5 * f * (y2 - y0 + f * (2 * y0 - 5 * y1 + 4 * y2 - y3 + f * (3 * (y1 - y2) + y3 - y0)))) * INT16_SCALE;
   }
 
   private loopActive(): boolean {

@@ -14,6 +14,8 @@ import { ANALYSIS_VERSION, type TrackAnalysis } from "./analysis";
 import type { WorkerJob, WorkerResult } from "./analysis.worker";
 import { ANALYSIS_RATE, type BandPeaks, type WaveDetail } from "./waveform";
 import { readTags, type TrackTags } from "./tags";
+import { Int16Pcm, deckChannels, jobSamples, type TrackPcm } from "./pcm";
+import { decodeMp3Stream, isLongMp3 } from "./mp3stream";
 import { buildStems, type StemChain, type StemGains } from "./stems";
 import type { DeckMsg, DeckReport } from "./worklets/processors";
 import { MeterBallistics, SILENT_METER, measure, type MeterReading } from "./meter";
@@ -186,6 +188,9 @@ export interface EchoConfig {
   feedback: number;
 }
 
+/** tope de la frecuencia del motor (ver cappedContext) */
+const MAX_CONTEXT_RATE = 48000;
+
 const EQ_FREQS = { low: 180, mid: 1000, high: 6000 } as const;
 /** una vuelta de vinilo a 33⅓ rpm ≈ 1.8 s de pista */
 export const SECONDS_PER_TURN = 1.8;
@@ -263,7 +268,7 @@ class DeckChannel {
   private node: AudioWorkletNode | null = null;
   private loaded = false;
   /** PCM que espera a que cargue el módulo del worklet */
-  private pending: Float32Array[] | null = null;
+  private pending: Int16Array[] | null = null;
   /** último estado informado por el reproductor (o predicho tras un comando) */
   private rep = { pos: 0, rate: 0, t: 0 };
   private seq = 0;
@@ -518,7 +523,7 @@ class DeckChannel {
     this.node?.port.postMessage(m, transfer);
   }
 
-  private sendBuffer(channels: Float32Array[]) {
+  private sendBuffer(channels: Int16Array[]) {
     this.post({ type: "buffer", channels }, channels.map((c) => c.buffer as ArrayBuffer));
   }
 
@@ -641,7 +646,7 @@ class DeckChannel {
    */
   load(
     track: LibraryTrack,
-    channels: Float32Array[],
+    channels: Int16Array[],
     peaks: number[] = track.peaks,
     bands: BandPeaks | null = track.bands,
     detail: WaveDetail | null = null,
@@ -1128,7 +1133,7 @@ export class AudioEngine {
   /** avisa a la UI cuando cambian las ranuras del sampler */
   onSamplesChange: (() => void) | null = null;
   private xfPos = 0.5;
-  private buffers = new Map<string, AudioBuffer>();
+  private buffers = new Map<string, TrackPcm>();
   /** Buffers de archivos importados a mano: no se pueden re-hidratar desde disco. */
   private pinned = new Set<string>();
   private meta = new Map<string, TrackAnalysis>();
@@ -1146,7 +1151,7 @@ export class AudioEngine {
 
   constructor() {
     const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    this.ctx = new Ctor({ latencyHint: "interactive" });
+    this.ctx = cappedContext(Ctor);
     this.master = this.ctx.createGain();
     this.master.gain.value = 0.5;
     // ataque mínimo y ratio máximo: lo más parecido a un limitador de pared
@@ -1173,7 +1178,7 @@ export class AudioEngine {
     this.phonesMaster.gain.value = 0;
     this.cueBus.connect(this.phonesCue).connect(this.cueStream);
     this.masterAnalyser.connect(this.phonesMaster).connect(this.cueStream);
-    this.cueCtx = new Ctor({ latencyHint: "interactive" });
+    this.cueCtx = cappedContext(Ctor);
     this.cueGain = this.cueCtx.createGain();
     this.cueGain.gain.value = 0.85;
     this.cueCtx.createMediaStreamSource(this.cueStream.stream)
@@ -1548,12 +1553,27 @@ export class AudioEngine {
     return ctx.decodeAudioData(data);
   }
 
+  /**
+   * PCM para reproducir: los MP3 largos (mezclas de una hora o más) se
+   * decodifican por partes a 16 bits; el resto con decodeAudioData.
+   */
+  private async decodeForDeck(data: ArrayBuffer): Promise<TrackPcm> {
+    if (isLongMp3(new Uint8Array(data))) {
+      try {
+        return await decodeMp3Stream(data, { sampleRate: this.ctx.sampleRate });
+      } catch {
+        // MP3 raro (formato libre, capa II…): el camino de siempre
+      }
+    }
+    return this.decode(this.ctx, data);
+  }
+
   /** `pin`: sin ruta en disco el buffer queda vivo (no se puede releer). */
   async importFile(file: File, pin = true): Promise<LibraryTrack> {
     const data = await file.arrayBuffer();
     // las etiquetas se leen antes: decodeAudioData se queda con el buffer
     const tags = readTags(data);
-    const buffer = await this.decode(this.ctx, data);
+    const buffer = await this.decodeForDeck(data);
     const { title, artist } = withTags({ fileName: file.name }, tags);
     const id = crypto.randomUUID();
     this.buffers.set(id, buffer);
@@ -1569,7 +1589,7 @@ export class AudioEngine {
         duration: buffer.duration,
         peaks: [] as number[],
         bands: null,
-        buffer,
+        buffer: buffer instanceof Int16Pcm ? null : buffer,
         analysis: null,
       },
       tags,
@@ -1593,10 +1613,25 @@ export class AudioEngine {
     extra: { sourcePath?: string; dir?: string } = {},
   ): Promise<LibraryTrack> {
     const tags = readTags(data);
-    const buffer = await this.decode(this.analysisCtx(), data);
+    let samples: Float32Array | null = null;
+    if (isLongMp3(new Uint8Array(data))) {
+      try {
+        samples = await decodeMp3Stream(data, { sampleRate: ANALYSIS_RATE, mono: true });
+      } catch {
+        samples = null;
+      }
+    }
+    let duration: number;
+    if (samples) {
+      duration = samples.length / ANALYSIS_RATE;
+    } else {
+      const buffer = await this.decode(this.analysisCtx(), data);
+      samples = buffer.getChannelData(0).slice();
+      duration = buffer.duration;
+    }
     const { title, artist } = withTags({ fileName }, tags);
     const id = crypto.randomUUID();
-    const res = await this.runJob(buffer.getChannelData(0).slice(), buffer.sampleRate, {
+    const res = await this.runJob(samples, ANALYSIS_RATE, {
       waveform: false,
       analyze: true,
     });
@@ -1608,7 +1643,7 @@ export class AudioEngine {
         fileName,
         title,
         artist,
-        duration: buffer.duration,
+        duration,
         peaks: [] as number[],
         bands: null,
         buffer: null,
@@ -1624,9 +1659,14 @@ export class AudioEngine {
   async hydrate(track: LibraryTrack, data: ArrayBuffer): Promise<LibraryTrack> {
     // pistas viejas de la biblioteca: se aprovecha la lectura para las etiquetas
     const tagged = track.tagged ? track : withTags(track, readTags(data));
-    const buffer = await this.decode(this.ctx, data);
+    const buffer = await this.decodeForDeck(data);
     this.buffers.set(track.id, buffer);
-    return { ...tagged, buffer, duration: track.duration || buffer.duration };
+    // un Int16Pcm no es un AudioBuffer: queda solo en el motor
+    return {
+      ...tagged,
+      buffer: buffer instanceof Int16Pcm ? null : buffer,
+      duration: track.duration || buffer.duration,
+    };
   }
 
   /** Manda un canal al worker (transferido, sin copiar dos veces). */
@@ -1661,11 +1701,12 @@ export class AudioEngine {
   }
 
   /** Calcula la onda en el worker si todavía no está (una sola vez por pista). */
-  private ensureWave(trackId: string, buffer: AudioBuffer): Promise<void> {
+  private ensureWave(trackId: string, buffer: TrackPcm): Promise<void> {
     if (this.waves.get(trackId)?.detail) return Promise.resolve();
     const pending = this.waveJobs.get(trackId);
     if (pending) return pending;
-    const job = this.runJob(buffer.getChannelData(0).slice(), buffer.sampleRate, {
+    const { samples, sampleRate } = jobSamples(buffer);
+    const job = this.runJob(samples, sampleRate, {
       waveform: true,
       analyze: false,
     }).then((res) => {
@@ -1697,7 +1738,8 @@ export class AudioEngine {
       return Promise.resolve(old);
     }
     const needWave = !this.waves.get(track.id)?.detail && !this.waveJobs.has(track.id);
-    return this.runJob(buffer.getChannelData(0).slice(), buffer.sampleRate, {
+    const { samples, sampleRate } = jobSamples(buffer);
+    return this.runJob(samples, sampleRate, {
       waveform: needWave,
       analyze: true,
     }).then((res) => {
@@ -2155,9 +2197,9 @@ export class AudioEngine {
     const wave = this.waves.get(track.id);
     // la onda se calcula en el worker (se copia el canal antes de soltar el PCM)
     if (!wave?.detail) void this.ensureWave(track.id, buffer);
-    // copias propias del PCM para el hilo de audio: el motor no guarda otra
-    const channels: Float32Array[] = [];
-    for (let c = 0; c < Math.min(2, buffer.numberOfChannels); c++) channels.push(buffer.getChannelData(c).slice());
+    // PCM en 16 bits para el hilo de audio: el motor no guarda otra copia
+    // (salvo las pistas importadas a mano, que no se pueden volver a leer)
+    const channels = deckChannels(buffer, this.pinned.has(track.id));
     deck.load(track, channels, wave?.peaks ?? track.peaks, wave?.bands ?? track.bands, wave?.detail ?? null);
     this.refreshEcho(deckId);
     // los archivos importados a mano quedan "pinned": no tienen ruta para releerse
@@ -2472,7 +2514,8 @@ export class AudioEngine {
   /** Usa como sample una pista que ya está decodificada en el motor. */
   sampleFromTrack(slot: number, trackId: string, info: SampleSlot): boolean {
     const buffer = this.buffers.get(trackId);
-    if (!buffer) return false;
+    // las mezclas largas (Int16Pcm) no se usan como sample
+    if (!(buffer instanceof AudioBuffer)) return false;
     this.samples[slot] = { buffer, slot: info };
     this.onSamplesChange?.();
     return true;
@@ -2700,6 +2743,18 @@ export class AudioEngine {
 }
 
 /** Impulso sintético para el reverb: ruido estéreo con caída exponencial. */
+/**
+ * AudioContext a la frecuencia del dispositivo, pero nunca más de 48 kHz: con
+ * placas a 96 o 192 kHz cada tema decodificado ocuparía el doble o el
+ * cuádruple de memoria (y de CPU) sin ninguna diferencia audible.
+ */
+function cappedContext(Ctor: typeof AudioContext): AudioContext {
+  const ctx = new Ctor({ latencyHint: "interactive" });
+  if (ctx.sampleRate <= MAX_CONTEXT_RATE) return ctx;
+  void ctx.close();
+  return new Ctor({ latencyHint: "interactive", sampleRate: MAX_CONTEXT_RATE });
+}
+
 function impulseResponse(ctx: BaseAudioContext, seconds: number, decay: number): AudioBuffer {
   const rate = ctx.sampleRate;
   const len = Math.max(1, Math.floor(rate * seconds));

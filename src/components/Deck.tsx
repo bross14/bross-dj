@@ -11,6 +11,8 @@ import { img } from "../assets";
 interface DeckProps {
   id: "A" | "B";
   runtime: DeckRuntime;
+  /** título del tema que se está cargando (null si no hay carga en curso) */
+  loading?: string | null;
   pitch: number;
   range: number;
   onRange: (dir: -1 | 1) => void;
@@ -63,6 +65,7 @@ interface DeckProps {
 export function Deck({
   id,
   runtime,
+  loading = null,
   pitch,
   range,
   onRange,
@@ -122,7 +125,14 @@ export function Deck({
     <section className={`cell deck ${deckClass}`} aria-label={`Deck ${id}`}>
       <div className="dhead">
         <div className="badge">{id}</div>
-        {runtime.loaded ? (
+        {loading ? (
+          <div className="dt" role="status">
+            <div className="t" title={loading} data-no-i18n>
+              {loading}
+            </div>
+            <div className="r deck-loading">Cargando…</div>
+          </div>
+        ) : runtime.loaded ? (
           <>
             <div className="dt">
               <div className="t" title={runtime.title} data-no-i18n>

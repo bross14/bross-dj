@@ -183,6 +183,7 @@ const EN: Record<string, string> = {
   "BPM al doble": "Double BPM",
   "SIN TRACK": "NO TRACK",
   "ARTISTA DESCONOCIDO": "UNKNOWN ARTIST",
+  "Cargando…": "Loading…",
 
   // ── editor de pista ────────────────────────────────────────────
   "Editor de pista": "Track editor",
