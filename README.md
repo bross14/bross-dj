@@ -4,6 +4,8 @@ Software de DJ de escritorio para Windows: 2 decks, mixer con EQ y efectos,
 sampler, automix, biblioteca con búsqueda, grabación, transmisión en vivo,
 video, karaoke, MIDI y DVS. Código propio y abierto (licencia [MIT](LICENSE)).
 
+![BROSS DJ](docs/captura.png)
+
 ## Descargar y probar
 
 1. Bajá el instalador `BROSS.DJ.Setup.0.1.0.exe` desde
@@ -16,6 +18,27 @@ video, karaoke, MIDI y DVS. Código propio y abierto (licencia [MIT](LICENSE)).
 Actions a partir de este código, y cada release trae su SHA-256 y una
 *attestation* que se puede verificar. El programa no envía datos ni
 estadísticas. Detalles y cómo comprobarlo en [SECURITY.md](SECURITY.md).
+
+## Cómo se usa
+
+![Zonas de la pantalla](docs/zonas.png)
+
+| # | Zona | Para qué sirve |
+|---|------|----------------|
+| 1 | Barra superior | **AUTO** (automix), **Q** (efectos y saltos al beat), **VIDEO**, **KARAOKE**, **LINE IN**, **REC** (grabar), **LIVE** (transmitir) y el engranaje de **Ajustes**. |
+| 2 | Ondas | La onda de cada tema con sus cues y loops. Rueda del mouse = zoom; clic abajo para saltar. |
+| 3 | Tema cargado | Título, artista, BPM, tonalidad y tiempo transcurrido / restante. |
+| 4 | Pitch y loops | Velocidad del tema, **LOCK** (mantener el tono), loops y **SLIP**. |
+| 5 | Plato | Con **VINYL** encendido, arrastrar hace scratch; apagado, empuja el tema para acomodarlo al beat. |
+| 6 | Pads | Con las flechas se cambia de modo: HOT CUE, ROLL, LOOPS, SLICER, SAMPLER, STEMS y USER. |
+| 7 | Transporte | **Play/pausa**, **CUE** y **SYNC** (iguala el tempo con el otro deck). |
+| 8 | Mixer | Ganancia, ecualizador (HI/MID/LOW), filtro, volumen de cada deck, auriculares (**CUE**), master y crossfader. |
+| 9 | Efectos | Dos efectos por deck. La pestaña **ONDAS** muestra las dos ondas juntas. |
+| 10 | Navegador | Buscador, carpetas, listas, historial, cola del automix (**SIDE**), YouTube y Spotify. El botón de carpeta agrega tu música. |
+| 11 | Temas | Doble clic carga en el deck A y Mayús + doble clic en el B (también se puede arrastrar). Clic derecho edita el tema. |
+
+El deck **A** es azul (izquierda) y el **B** magenta (derecha); los dos tienen los mismos controles.
+Atajos: **Espacio** play/pausa, **C** CUE, **Shift** cambia de deck y **X** centra el crossfader.
 
 ## Sugerencias y errores
 
