@@ -59,7 +59,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "BROSS DJ"
+      "shortcutName": "BROSS DJ",
+      "artifactName": "BROSS.DJ.Setup.${version}.${ext}"
     },
     "asarUnpack": [
       "electron/encode.cjs",

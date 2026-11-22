@@ -6,7 +6,7 @@ video, karaoke, MIDI y DVS. Código propio y abierto (licencia [MIT](LICENSE)).
 
 ## Descargar y probar
 
-1. Bajá el instalador `BROSS DJ Setup 0.1.0.exe` desde
+1. Bajá el instalador `BROSS.DJ.Setup.0.1.0.exe` desde
    [Releases](https://github.com/bross14/bross-dj/releases/latest).
 2. Si Windows muestra "Windows protegió su PC", tocá *Más información →
    Ejecutar de todas formas*. Aparece porque el instalador todavía no tiene

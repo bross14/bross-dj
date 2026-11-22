@@ -11,13 +11,13 @@
    [CLI de GitHub](https://cli.github.com/) se comprueba así:
 
    ```powershell
-   gh attestation verify "BROSS DJ Setup X.Y.Z.exe" --repo bross14/bross-dj
+   gh attestation verify "BROSS.DJ.Setup.X.Y.Z.exe" --repo bross14/bross-dj
    ```
 
 3. **Hash SHA-256.** Cada release trae `SHA256SUMS.txt`. Para comparar:
 
    ```powershell
-   Get-FileHash "BROSS DJ Setup X.Y.Z.exe" -Algorithm SHA256
+   Get-FileHash "BROSS.DJ.Setup.X.Y.Z.exe" -Algorithm SHA256
    ```
 
 4. **Compilarlo uno mismo.** Ver "Producción e instalador" en el
