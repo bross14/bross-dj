@@ -48,6 +48,12 @@ Atajos: **Espacio** play/pausa, **C** CUE, **Shift** cambia de deck y **X** cent
 - **Sugerencia:** algo para agregar, cambiar o quitar.
 - **Error:** algo que no funciona, con los pasos para repetirlo.
 
+## Colaborar
+
+Si BROSS DJ te sirve y querés apoyar el proyecto, podés hacer una donación por
+[Mercado Pago](https://link.mercadopago.com.ar/brossdj) (también desde el botón
+**Sponsor** de arriba). ¡Gracias!
+
 ## Compilarlo desde el código
 
 ### Requisitos
