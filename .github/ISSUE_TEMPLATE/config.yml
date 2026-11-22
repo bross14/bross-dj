@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Problema de seguridad
+    url: https://github.com/bross14/bross-dj/security/advisories/new
+    about: Avisame en privado, no en un issue público.

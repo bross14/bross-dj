@@ -1,0 +1,76 @@
+{
+  "name": "bross-dj",
+  "private": true,
+  "version": "0.1.0",
+  "description": "BROSS DJ — software de DJ de escritorio para Windows (Electron + Web Audio)",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview --port 4173",
+    "app": "electron .",
+    "test": "vitest run",
+    "test:ui": "vitest run -c vitest.ui.config.ts",
+    "dist": "npm run build && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "@breezystack/lamejs": "1.2.7"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "electron": "^45.2.2",
+    "electron-builder": "^26.18.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0"
+  },
+  "author": "BROSS DJ",
+  "build": {
+    "appId": "com.brossdj.app",
+    "productName": "BROSS DJ",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "BROSS DJ"
+    },
+    "asarUnpack": [
+      "electron/encode.cjs",
+      "electron/encode-worker.cjs",
+      "electron/tagwriter.cjs",
+      "node_modules/@breezystack/lamejs/**"
+    ]
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bross14/bross-dj.git"
+  }
+}

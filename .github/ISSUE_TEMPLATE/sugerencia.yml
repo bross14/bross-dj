@@ -1,0 +1,26 @@
+name: Sugerencia
+description: Algo para agregar, cambiar o quitar
+labels: ["sugerencia"]
+body:
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: ¿Qué propones?
+      options:
+        - Agregar algo nuevo
+        - Cambiar algo que ya existe
+        - Quitar algo
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: La idea
+      description: Qué te gustaría y para qué lo usarías al mezclar.
+    validations:
+      required: true
+  - type: textarea
+    id: ejemplo
+    attributes:
+      label: Ejemplo o referencia (opcional)
+      description: Cómo lo resuelve otro programa o controlador, una captura, etc.

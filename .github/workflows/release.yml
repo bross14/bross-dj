@@ -1,0 +1,45 @@
+# Compila el instalador de Windows en GitHub a partir del tag y lo publica en
+# Releases con su SHA-256 y una attestation de origen (gh attestation verify).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write       # crear la release y subir archivos
+  id-token: write       # firmar la attestation
+  attestations: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Compilar instalador
+        run: npm run build && npx electron-builder --win nsis --publish never
+      - name: SHA-256
+        shell: pwsh
+        run: |
+          Get-ChildItem release -Filter *.exe | ForEach-Object {
+            "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name
+          } | Out-File release/SHA256SUMS.txt -Encoding utf8
+          Get-Content release/SHA256SUMS.txt
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: release/*.exe
+      - name: Publicar release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem release -Filter *.exe | Select-Object -First 1
+          gh release create "${{ github.ref_name }}" $exe.FullName release/SHA256SUMS.txt `
+            --title "BROSS DJ ${{ github.ref_name }}" `
+            --notes "Compilado por GitHub Actions desde este tag. Cómo verificarlo: ver SECURITY.md."

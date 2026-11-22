@@ -1,0 +1,63 @@
+/* tokens.css — variables CSS de BROSS DJ
+   Paleta neutra de la plantilla: grafito, cromo y acentos por deck. */
+:root {
+  /* Base neutra (grafito) */
+  --bg: #0b0b0b;
+  --surface: #1a1a1a;
+  --surface-2: #242424;
+  --surface-3: #2e2e2e;
+  --border: #2b2b2b;
+  --border-input: #5e5e5e;
+  --text: #e8e8e8;
+  --text-muted: #9a9a9a;
+
+  /* Acentos: A = azul eléctrico, B = verde de la onda */
+  --accent: #2f8fe8;
+  --accent-b: #3fbf5a;
+  --on-accent: #ffffff;
+  --cue: #b6d6f1;
+  --success: #4ade64;
+  --warning: #d9a92f;
+  --danger: #e04b4b;
+
+  /* Metal cepillado neutro */
+  --metal-1: #2b2b2b;
+  --metal-2: #1e1e1e;
+  --metal-3: #161616;
+  --metal-4: #0c0c0c;
+  --edge-hi: rgba(255, 255, 255, 0.08);
+  --edge-lo: rgba(0, 0, 0, 0.65);
+  --groove: #050505;
+
+  /* Cromo */
+  --chrome-hi: #f6f6f6;
+  --chrome-mid: #b9b9b9;
+  --chrome-low: #6d6d6d;
+
+  /* Gradientes reutilizables */
+  --grad-panel: linear-gradient(180deg, #1e1e1e 0%, #191919 45%, #151515 100%);
+  --grad-metal: linear-gradient(180deg, #2b2b2b 0%, #1e1e1e 52%, #161616 100%);
+  --grad-chrome: linear-gradient(180deg, #fbfbfb 0%, #d0d0d0 38%, #8f8f8f 52%, #e8e8e8 68%, #a7a7a7 100%);
+  --grad-groove: linear-gradient(180deg, #050505 0%, #111111 50%, #050505 100%);
+
+  /* Radios y sombras */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --shadow-glow-a: 0 0 12px rgba(47, 143, 232, 0.4);
+  --shadow-glow-b: 0 0 12px rgba(63, 191, 90, 0.35);
+  /* tecla metálica: luz arriba, sombra abajo */
+  --shadow-key: inset 0 1px 0 var(--edge-hi), inset 0 -1px 0 rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+  /* hueco / ranura fresada */
+  --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.75), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+
+  --motion-fast: 100ms;
+  --motion-base: 160ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
